@@ -1,3 +1,264 @@
 The protocol can then be adopted by a class, structure, or enumeration to provide an actual implementation of those requirements
 
 
+Protocol Syntax:
+
+protocol SomeProtocol {
+    // protocol definition goes here
+}
+
+
+struct SomeStructure: FirstProtocol, AnotherProtocol {
+    // structure definition goes here
+}
+
+
+
+//Super Class in the swift 
+class SomeClass: SomeSuperclass, FirstProtocol, AnotherProtocol {
+    // class definition goes here
+}
+
+
+protocol SomeProtocol {
+    var mustBeSettable: Int { get set }   //BOTH GET AND SET
+    var doesNotNeedToBeSettable: Int { get } //GET 
+} 
+
+
+///type property ( i.e ClassName.funcName ) for protocol
+
+protocol AnotherProtocol {
+    static var someTypeProperty: Int { get set }
+}
+
+
+protocol FullyNamed {
+    var fullName: String { get }
+}
+
+
+struct Person: FullyNamed {
+    var fullName: String
+}
+let john = Person(fullName: "John Appleseed")
+// john.fullName is "John Appleseed"
+
+
+Mutating Method Requirements i.e Value type have to implement mutating declaration in the function name so that they can change the value type .
+
+
+
+protocol Togglable {
+    mutating func toggle()
+}
+
+enum OnOffSwitch: Togglable {   ////Enum is the value type which is conforming the Togglable protocol 
+    case Off, On
+    mutating func toggle() {
+        switch self {
+        case Off:
+            self = On
+        case On:
+            self = Off
+        }
+    }
+}
+var lightSwitch = OnOffSwitch.Off
+lightSwitch.toggle()
+
+
+
+We can force the class to initilze the class with specific init methods in the class by protocol declaration i.e
+
+
+protocol SomeProtocol {
+    init(someParameter: Int)
+}
+
+
+class SomeClass: SomeProtocol {
+    required init(someParameter: Int) { /////Required is important keyword  that init is explicit or inherited implementation
+        // initializer implementation goes here
+    }
+}
+
+
+Protocol as Type :
+we can pass the protocl as type like Int,Float,Class
+
+i.e     let generator: RandomNumberGenerator  //RandomNumberGenerator is protocol type
+
+
+Adding Protocol Conformance with an Extension
+
+Can extend an existing type to adopr and conform new protocol
+
+
+
+protocol TextRepresentable {
+    var textualDescription: String { get }
+}
+
+extension Dice: TextRepresentable {
+    var textualDescription: String {
+        return "A \(sides)-sided dice"
+    }
+}
+
+let d12 = Dice(sides: 12, generator: LinearCongruentialGenerator())
+print(d12.textualDescription)
+// Prints "A 12-sided dice"
+
+extension SnakesAndLadders: TextRepresentable {
+    var textualDescription: String {
+        return "A game of Snakes and Ladders with \(finalSquare) squares"
+    }
+}
+print(game.textualDescription)
+// Prints "A game of Snakes and Ladders with 25 squares"
+
+
+
+Declaring Protocol Adoption with an Extension
+//Declaring the requried before 
+struct Hamster {
+    var name: String
+    var textualDescription: String {
+        return "A hamster named \(name)"
+    }
+}
+extension Hamster: TextRepresentable {}
+
+
+let simonTheHamster = Hamster(name: "Simon")
+let somethingTextRepresentable: TextRepresentable = simonTheHamster
+print(somethingTextRepresentable.textualDescription)
+
+
+
+Protocol Inheritance
+
+
+
+protocol InheritingProtocol: SomeProtocol, AnotherProtocol {
+    // protocol definition goes here
+}
+
+
+protocol PrettyTextRepresentable: TextRepresentable {
+    var prettyTextualDescription: String { get }
+}
+
+This example defines a new protocol, PrettyTextRepresentable, which inherits from TextRepresentable. Anything that adopts PrettyTextRepresentable must satisfy all of the requirements enforced by TextRepresentable, plus the additional requirements enforced by PrettyTextRepresentable
+
+
+
+Class-Only Protocols
+///That means class only implment the protocol
+
+protocol SomeClassOnlyProtocol: class, SomeInheritedProtocol {
+    // class-only protocol definition goes here
+}
+
+In the example above, SomeClassOnlyProtocol can only be adopted by class types. It is a compile-time error to write a structure or enumeration definition that tries to adopt SomeClassOnlyProtocol.
+
+
+Protocol Composition
+
+Placing multiple protocl into single protool
+protocol<SomeProtocol, AnotherProtocol>. 
+
+
+protocol Named {
+    var name: String { get }
+}
+protocol Aged {
+    var age: Int { get }
+}
+struct Person: Named, Aged {
+    var name: String
+    var age: Int
+}
+func wishHappyBirthday(celebrator: protocol<Named, Aged>) {
+    print("Happy birthday \(celebrator.name) - you're \(celebrator.age)!")
+}
+let birthdayPerson = Person(name: "Malcolm", age: 21)
+wishHappyBirthday(birthdayPerson)
+// Prints "Happy birthday Malcolm - you're 21!"
+
+
+//Important The type of this parameter is protocol<Named, Aged>, which means “any type that conforms to both the Named and Aged protocols.”
+
+//It doesn’t matter what specific type is passed to the function, as long as it conforms to both of the required protocols.
+
+
+
+Providing Default Implementations
+
+extension PrettyTextRepresentable  {
+    var prettyTextualDescription: String {
+        return textualDescription
+    }
+}   //we can override the extension method in the class inherited the protocol
+
+
+
+Checking for Protocol Conformance
+//Left out
+
+
+
+Optional Protocol Requirements
+These requirements do not have to be implemented by types that conform to the protocol. 
+
+Optional requirements are prefixed by the optional modifier as part of the protocol’s definition
+
+someOptionalMethod?(someArgument)
+
+Optional protocol requirements can only be specified if your protocol is marked with the @objc attribute.
+
+ you need to mark your protocols with the @objc attribute if you want to specify optional requirements.
+
+ Note also that @objc protocols can be adopted only by classes that inherit from Objective-C classes or other @objc classes. They can’t be adopted by structures or enumerations.
+
+
+
+@objc protocol CounterDataSource {
+    optional func incrementForCount(count: Int) -> Int
+    optional var fixedIncrement: Int { get }
+}
+
+
+Providing Default Implementations
+
+
+extension PrettyTextRepresentable  {
+    var prettyTextualDescription: String {
+        return textualDescription
+    }
+}
+
+
+Adding Constraints to Protocol Extensions
+
+ you’re extending using a where clause,
+
+ extension CollectionType where Generator.Element: TextRepresentable {
+    var textualDescription: String {
+        let itemsAsText = self.map { $0.textualDescription }
+        return "[" + itemsAsText.joinWithSeparator(", ") + "]"
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
